@@ -1,0 +1,141 @@
+-- GUI Configuration
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local WelcomeLabel = Instance.new("TextLabel")
+local TitleLabel = Instance.new("TextLabel")
+local ContentFrame = Instance.new("Frame")
+local InvisBtn = Instance.new("TextButton")
+local EspBtn = Instance.new("TextButton")
+
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "RobloxDeltaMod_Final"
+
+-- Startup Phase: Full Black Screen Overlay
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+MainFrame.Position = UDim2.new(0, 0, 0, 0)
+MainFrame.Size = UDim2.new(1, 0, 1, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true 
+
+-- Welcome Text (Animated Rainbow)
+WelcomeLabel.Parent = MainFrame
+WelcomeLabel.BackgroundTransparency = 1
+WelcomeLabel.Position = UDim2.new(0.5, -150, 0.45, -25)
+WelcomeLabel.Size = UDim2.new(0, 300, 0, 50)
+WelcomeLabel.Font = Enum.Font.SpecialElite
+WelcomeLabel.Text = "WELCOME"
+WelcomeLabel.TextSize = 70
+
+-- RGB Rainbow Cycle Thread
+spawn(function()
+    while task.wait() do
+        local hue = tick() % 5 / 5
+        local color = Color3.fromHSV(hue, 1, 1)
+        WelcomeLabel.TextColor3 = color
+        TitleLabel.TextColor3 = color
+    end
+end)
+
+-- Wait 3 seconds, then transform into the small white menu
+task.wait(3)
+WelcomeLabel.Visible = false
+MainFrame:TweenSize(UDim2.new(0, 220, 0, 180), "Out", "Quad", 0.5, true)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -90)
+MainFrame.BackgroundColor3 = Color3.new(1, 1, 1) -- Small White Background
+MainFrame.BorderSizePixel = 2
+
+-- Header: RobloxDeltaMod (Always RGB)
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 0, 0, 5)
+TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "RobloxDeltaMod"
+TitleLabel.TextSize = 22
+
+-- Buttons Container
+ContentFrame.Parent = MainFrame
+ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+ContentFrame.BackgroundTransparency = 1
+
+-- Invisibility Button
+InvisBtn.Parent = ContentFrame
+InvisBtn.Size = UDim2.new(0.85, 0, 0.35, 0)
+InvisBtn.Position = UDim2.new(0.075, 0, 0.05, 0)
+InvisBtn.Text = "Invisibility: OFF"
+InvisBtn.Font = Enum.Font.GothamMedium
+InvisBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+InvisBtn.TextColor3 = Color3.new(1, 1, 1)
+InvisBtn.BorderSizePixel = 0
+
+-- ESP Button
+EspBtn.Parent = ContentFrame
+EspBtn.Size = UDim2.new(0.85, 0, 0.35, 0)
+EspBtn.Position = UDim2.new(0.075, 0, 0.55, 0)
+EspBtn.Text = "See where they are"
+EspBtn.Font = Enum.Font.GothamMedium
+EspBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+EspBtn.TextColor3 = Color3.new(1, 1, 1)
+EspBtn.BorderSizePixel = 0
+
+--- FEATURES LOGIC ---
+
+-- Toggle Invisibility (ON/OFF)
+local isInvisible = false
+InvisBtn.MouseButton1Click:Connect(function()
+    local char = game.Players.LocalPlayer.Character
+    if not char then return end
+    
+    isInvisible = not isInvisible
+    
+    if isInvisible then
+        InvisBtn.Text = "Invisibility: ON"
+        InvisBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- Green when active
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") or v:IsA("Decal") then
+                v.Transparency = 1
+            end
+        end
+    else
+        InvisBtn.Text = "Invisibility: OFF"
+        InvisBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Dark when inactive
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") or v:IsA("Decal") then
+                if v.Name ~= "HumanoidRootPart" then
+                    v.Transparency = 0
+                end
+            end
+        end
+    end
+end)
+
+-- Toggle Player ESP (ON/OFF)
+local espEnabled = false
+EspBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    
+    if espEnabled then
+        EspBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- Green when active
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "DeltaESP"
+                highlight.Parent = player.Character
+                highlight.FillColor = Color3.new(1, 0, 0)
+                highlight.OutlineColor = Color3.new(1, 1, 1)
+                highlight.FillTransparency = 0.5
+            end
+        end
+    else
+        EspBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Dark when inactive
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("DeltaESP") then
+                player.Character.DeltaESP:Destroy()
+            end
+        end
+    end
+end)
